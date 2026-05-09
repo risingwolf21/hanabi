@@ -29,7 +29,7 @@ const MULTICOLOR_OPTIONS: { value: 0 | 1 | 2 | 3; label: string; description: st
 
 export default function LobbyPage() {
   const navigate = useNavigate()
-  const { user, displayName, setDisplayName } = useAuth()
+  const { user, displayName, setDisplayName, signIn, authError } = useAuth()
 
   const [mode, setMode] = useState<Mode>('home')
   const [nameInput, setNameInput] = useState(displayName)
@@ -38,15 +38,20 @@ export default function LobbyPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  async function resolveUser() {
+    if (user) return user
+    return signIn()
+  }
+
   async function handleCreate() {
     const name = nameInput.trim()
     if (!name) { setError('Please enter your name.'); return }
-    if (!user) { setError('Still signing in… try again.'); return }
     setLoading(true)
     setError('')
     try {
+      const currentUser = await resolveUser()
       setDisplayName(name)
-      const gameId = await createGame(user.uid, name, config)
+      const gameId = await createGame(currentUser.uid, name, config)
       navigate(`/game/${gameId}`)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create game.')
@@ -60,12 +65,12 @@ export default function LobbyPage() {
     const code = joinCode.trim().toUpperCase()
     if (!name) { setError('Please enter your name.'); return }
     if (code.length !== 6) { setError('Game code must be 6 characters.'); return }
-    if (!user) { setError('Still signing in… try again.'); return }
     setLoading(true)
     setError('')
     try {
+      const currentUser = await resolveUser()
       setDisplayName(name)
-      await joinGame(code, user.uid, name)
+      await joinGame(code, currentUser.uid, name)
       navigate(`/game/${code}`)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to join game.')
@@ -194,10 +199,10 @@ export default function LobbyPage() {
             </div>
           )}
 
-          {error && (
+          {(error || authError) && (
             <div className="flex items-center gap-2 rounded-md bg-red-950 border border-red-800 px-3 py-2 text-sm text-red-300">
               <Info className="h-4 w-4 shrink-0" />
-              {error}
+              <span>{error || authError}</span>
             </div>
           )}
         </div>
