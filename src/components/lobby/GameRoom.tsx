@@ -30,8 +30,8 @@ export default function GameRoom({ gameState, myPlayerId, onStart, error }: Prop
     try { await onStart() } finally { setStarting(false) }
   }
 
-  function copyCode() {
-    navigator.clipboard.writeText(gameState.id).then(() => {
+  function copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
@@ -44,24 +44,19 @@ export default function GameRoom({ gameState, myPlayerId, onStart, error }: Prop
         <div className="text-center">
           <Sparkles className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
           <h1 className="text-2xl font-bold text-white">Waiting Room</h1>
-          <p className="text-slate-400 text-sm mt-1">Share the code and wait for friends to join</p>
+          <p className="text-slate-400 text-sm mt-1">Share the invite link and wait for friends to join</p>
         </div>
 
-        {/* Room code */}
+        {/* Invite link */}
         <div className="bg-slate-900 border border-slate-700 rounded-xl p-5">
-          <p className="text-xs text-slate-500 text-center mb-2 uppercase tracking-wider">Room Code</p>
-          <div className="flex items-center justify-center gap-3">
-            <span className="text-4xl font-mono font-bold tracking-[0.3em] text-white">
-              {gameState.id}
-            </span>
-            <button
-              onClick={copyCode}
-              className="p-2 rounded-md hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-              title="Copy code"
-            >
-              {copied ? <Check className="h-5 w-5 text-green-400" /> : <Copy className="h-5 w-5" />}
-            </button>
-          </div>
+          <p className="text-xs text-slate-500 text-center mb-3 uppercase tracking-wider">Invite Friends</p>
+          <button
+            onClick={copyLink}
+            className="w-full flex items-center justify-center gap-2 rounded-md bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 text-sm font-medium text-white transition-colors"
+          >
+            {copied ? <Check className="h-4 w-4 text-green-300" /> : <Copy className="h-4 w-4" />}
+            {copied ? 'Link Copied!' : 'Copy Invite Link'}
+          </button>
         </div>
 
         {/* Game config */}
