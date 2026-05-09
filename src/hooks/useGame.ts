@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { GameState, Color, Value, ClueType } from '@/lib/types'
 import { canGiveClue, canDiscard } from '@/lib/gameEngine'
-import { subscribeToGame, performAction, startGame as startGameFn } from '@/lib/firestore'
+import { subscribeToGame, performAction, startGame as startGameFn } from '@/lib/database'
 import { useAuth } from './useAuth'
 
 interface UseGameReturn {

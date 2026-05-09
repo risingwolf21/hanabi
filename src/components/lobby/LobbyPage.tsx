@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Sparkles, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
-import { createGame, joinGame } from '@/lib/firestore'
+import { createGame, joinGame } from '@/lib/database'
 import type { GameConfig } from '@/lib/types'
 
 type Mode = 'home' | 'create' | 'join'
