@@ -144,7 +144,7 @@ export async function joinGame(
     if (state.players.some(p => p.id === playerId)) return state // already joined
 
     return { ...state, players: [...state.players, { id: playerId, name: playerName, joinedAt: Date.now() }] }
-  })
+  }, { applyLocally: false })
 
   if (errorMsg) throw new Error(errorMsg)
 }
@@ -164,7 +164,7 @@ export async function startGame(gameId: string): Promise<void> {
     const { hands, remainingDeck } = dealCards(deck, playerIds, playerIds.length)
 
     return { ...state, status: 'playing', deck: remainingDeck, hands }
-  })
+  }, { applyLocally: false })
 
   if (errorMsg) throw new Error(errorMsg)
 }
@@ -203,7 +203,7 @@ export async function performAction(
     }
 
     return state
-  })
+  }, { applyLocally: false })
 
   if (errorMsg) throw new Error(errorMsg)
 }
