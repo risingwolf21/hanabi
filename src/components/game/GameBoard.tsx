@@ -8,6 +8,7 @@ import PlayerHand from './PlayerHand'
 import ActionPanel from './ActionPanel'
 import ClueModal from './ClueModal'
 import GameOverScreen from './GameOverScreen'
+import CardActionOverlay from './CardActionOverlay'
 import { Badge } from '@/components/ui/badge'
 
 interface Props {
@@ -217,6 +218,9 @@ export default function GameBoard({
           config={gameState.config}
         />
       )}
+
+      {/* Card action animation overlay */}
+      <CardActionOverlay lastAction={gameState.lastAction} />
     </div>
   )
 }
