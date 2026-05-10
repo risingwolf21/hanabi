@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { GameState, Color, Value, ClueType } from '@/lib/types'
-import { canGiveClue, canDiscard } from '@/lib/gameEngine'
-import { subscribeToGame, performAction, startGame as startGameFn } from '@/lib/database'
+import { canGiveClue, canDiscard, chooseBotAction } from '@/lib/gameEngine'
+import {
+  subscribeToGame, performAction, startGame as startGameFn,
+  addBot as addBotFn, removeBot as removeBotFn,
+} from '@/lib/database'
 import { useAuth } from './useAuth'
 
 interface UseGameReturn {
@@ -17,6 +20,8 @@ interface UseGameReturn {
   discardCard: (cardId: string) => Promise<void>
   playCard: (cardId: string) => Promise<void>
   startGame: () => Promise<void>
+  addBot: () => Promise<void>
+  removeBot: (botId: string) => Promise<void>
 }
 
 export function useGame(gameId: string): UseGameReturn {
@@ -24,6 +29,7 @@ export function useGame(gameId: string): UseGameReturn {
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const botBusy = useRef(false)
 
   useEffect(() => {
     setLoading(true)
@@ -35,6 +41,35 @@ export function useGame(gameId: string): UseGameReturn {
   }, [gameId])
 
   const myPlayerId = user?.uid ?? null
+
+  // Drive bot turns — only the host executes bots to avoid duplicate actions
+  useEffect(() => {
+    if (!gameState || gameState.status !== 'playing') return
+    if (myPlayerId !== gameState.hostId) return
+
+    const currentPlayer = gameState.players[gameState.currentPlayerIndex]
+    if (!currentPlayer || !gameState.botIds.includes(currentPlayer.id)) return
+
+    if (botBusy.current) return
+    botBusy.current = true
+
+    const timer = setTimeout(async () => {
+      try {
+        const action = chooseBotAction(gameState, currentPlayer.id)
+        await performAction(gameId, action)
+      } catch {
+        // ignore — next state update will retry if still bot's turn
+      } finally {
+        botBusy.current = false
+      }
+    }, 1200)
+
+    return () => {
+      clearTimeout(timer)
+      botBusy.current = false
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState?.currentPlayerIndex, gameState?.status, gameId, myPlayerId])
 
   const isMyTurn = !!gameState &&
     gameState.status === 'playing' &&
@@ -99,6 +134,16 @@ export function useGame(gameId: string): UseGameReturn {
     [gameId, wrap],
   )
 
+  const addBot = useCallback(
+    () => wrap(() => addBotFn(gameId, myPlayerId!)),
+    [gameId, myPlayerId, wrap],
+  )
+
+  const removeBot = useCallback(
+    (botId: string) => wrap(() => removeBotFn(gameId, myPlayerId!, botId)),
+    [gameId, myPlayerId, wrap],
+  )
+
   return {
     gameState,
     loading,
@@ -112,5 +157,7 @@ export function useGame(gameId: string): UseGameReturn {
     discardCard,
     playCard,
     startGame,
+    addBot,
+    removeBot,
   }
 }

@@ -369,3 +369,55 @@ export function initialFireworks(config: GameConfig): Record<Color, number> {
   }
   return result as Record<Color, number>
 }
+
+// ---------------------------------------------------------------------------
+// Bot strategy
+// ---------------------------------------------------------------------------
+
+export function chooseBotAction(state: GameState, botId: string): Action {
+  const hand = state.hands[botId] ?? []
+  const config = state.config
+
+  // 1. Play any card that is the next needed for its firework
+  for (const card of hand) {
+    if ((state.fireworks[card.color] ?? 0) === card.value - 1) {
+      return { type: 'play', actorId: botId, cardId: card.id, card, success: false }
+    }
+  }
+
+  // 2. Discard if clocks aren't full
+  if (canDiscard(state) && hand.length > 0) {
+    const card = hand[hand.length - 1]
+    return { type: 'discard', actorId: botId, cardId: card.id, card }
+  }
+
+  // 3. Give any valid clue
+  if (canGiveClue(state)) {
+    for (const player of state.players) {
+      if (player.id === botId) continue
+      const playerHand = state.hands[player.id] ?? []
+      for (const card of playerHand) {
+        // Variant 3 forbids multicolor as a clue type
+        if (config.multicolorVariant === 3 && card.color === 'multicolor') continue
+        return {
+          type: 'clue', actorId: botId, targetPlayerId: player.id,
+          clueType: 'color', clueValue: card.color, cardIds: [],
+        }
+      }
+      // Fallback: value clue on first card
+      if (playerHand.length > 0) {
+        return {
+          type: 'clue', actorId: botId, targetPlayerId: player.id,
+          clueType: 'value', clueValue: playerHand[0].value, cardIds: [],
+        }
+      }
+    }
+  }
+
+  // 4. Last resort: play first card
+  if (hand.length > 0) {
+    return { type: 'play', actorId: botId, cardId: hand[0].id, card: hand[0], success: false }
+  }
+
+  throw new Error('Bot has no valid action')
+}

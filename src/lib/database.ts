@@ -71,6 +71,7 @@ function normalise(raw: unknown): GameState {
   return {
     ...(d as object),
     players: toArr<Player>(d.players),
+    botIds: toArr<string>(d.botIds),
     deck: toArr<Record<string, unknown>>(d.deck).map(simpleCard),
     discardPile: toArr<Record<string, unknown>>(d.discardPile).map(simpleCard),
     hands,
@@ -107,6 +108,7 @@ export async function createGame(
     hostId,
     config,
     players: [{ id: hostId, name: hostName, joinedAt: Date.now() }],
+    botIds: [],
     currentPlayerIndex: 0,
     deck: [],
     hands: {},
@@ -144,6 +146,50 @@ export async function joinGame(
     if (state.players.some(p => p.id === playerId)) return state // already joined
 
     return { ...state, players: [...state.players, { id: playerId, name: playerName, joinedAt: Date.now() }] }
+  }, { applyLocally: false })
+
+  if (errorMsg) throw new Error(errorMsg)
+}
+
+export async function addBot(gameId: string, hostId: string): Promise<void> {
+  let errorMsg: string | null = null
+
+  await runTransaction(gameRef(gameId), (current: unknown) => {
+    if (!current) { errorMsg = 'Game not found.'; return }
+    const state = normalise(current)
+
+    if (state.hostId !== hostId) { errorMsg = 'Only the host can add bots.'; return }
+    if (state.status !== 'lobby') { errorMsg = 'Game has already started.'; return }
+    if (state.players.length >= 5) { errorMsg = 'Game is full (max 5 players).'; return }
+
+    const botCount = state.botIds.length
+    const botId = `bot_${generateGameId()}`
+    const botName = `Bot ${botCount + 1}`
+    return {
+      ...state,
+      players: [...state.players, { id: botId, name: botName, joinedAt: Date.now() }],
+      botIds: [...state.botIds, botId],
+    }
+  }, { applyLocally: false })
+
+  if (errorMsg) throw new Error(errorMsg)
+}
+
+export async function removeBot(gameId: string, hostId: string, botId: string): Promise<void> {
+  let errorMsg: string | null = null
+
+  await runTransaction(gameRef(gameId), (current: unknown) => {
+    if (!current) { errorMsg = 'Game not found.'; return }
+    const state = normalise(current)
+
+    if (state.hostId !== hostId) { errorMsg = 'Only the host can remove bots.'; return }
+    if (state.status !== 'lobby') { errorMsg = 'Game has already started.'; return }
+
+    return {
+      ...state,
+      players: state.players.filter(p => p.id !== botId),
+      botIds: state.botIds.filter(id => id !== botId),
+    }
   }, { applyLocally: false })
 
   if (errorMsg) throw new Error(errorMsg)

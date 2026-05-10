@@ -47,6 +47,7 @@ export interface GameState {
   hostId: string
   config: GameConfig
   players: Player[]
+  botIds: string[]
   currentPlayerIndex: number
   deck: Card[]
   hands: Record<string, CardInHand[]>
