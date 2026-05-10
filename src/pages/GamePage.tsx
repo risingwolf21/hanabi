@@ -13,7 +13,7 @@ export default function GamePage() {
   const { user, displayName, setDisplayName, signIn, authError } = useAuth()
   const {
     gameState, loading, error, clearError,
-    myPlayerId, giveClue, discardCard, playCard, startGame,
+    myPlayerId, giveClue, discardCard, playCard, startGame, addBot, removeBot,
   } = useGame(gameId!)
 
   const [nameInput, setNameInput] = useState(displayName)
@@ -99,6 +99,8 @@ export default function GamePage() {
         gameState={gameState}
         myPlayerId={myPlayerId}
         onStart={startGame}
+        onAddBot={addBot}
+        onRemoveBot={removeBot}
         error={error}
       />
     )

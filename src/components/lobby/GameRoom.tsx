@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Copy, Check, Users, Sparkles } from 'lucide-react'
+import { Copy, Check, Users, Sparkles, Bot, X, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { GameState } from '@/lib/types'
@@ -8,6 +8,8 @@ interface Props {
   gameState: GameState
   myPlayerId: string | null
   onStart: () => Promise<void>
+  onAddBot: () => Promise<void>
+  onRemoveBot: (botId: string) => Promise<void>
   error: string | null
 }
 
@@ -18,9 +20,10 @@ const VARIANT_LABELS: Record<number, string> = {
   3: 'Variant 3 – 6th suit (wild)',
 }
 
-export default function GameRoom({ gameState, myPlayerId, onStart, error }: Props) {
+export default function GameRoom({ gameState, myPlayerId, onStart, onAddBot, onRemoveBot, error }: Props) {
   const [copied, setCopied] = useState(false)
   const [starting, setStarting] = useState(false)
+  const [addingBot, setAddingBot] = useState(false)
 
   const isHost = myPlayerId === gameState.hostId
   const canStart = gameState.players.length >= 2
@@ -28,6 +31,11 @@ export default function GameRoom({ gameState, myPlayerId, onStart, error }: Prop
   async function handleStart() {
     setStarting(true)
     try { await onStart() } finally { setStarting(false) }
+  }
+
+  async function handleAddBot() {
+    setAddingBot(true)
+    try { await onAddBot() } finally { setAddingBot(false) }
   }
 
   function copyLink() {
@@ -76,25 +84,53 @@ export default function GameRoom({ gameState, myPlayerId, onStart, error }: Prop
 
         {/* Players */}
         <div className="bg-slate-900 border border-slate-700 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Users className="h-4 w-4 text-slate-400" />
-            <p className="text-sm font-medium text-slate-300">
-              Players ({gameState.players.length}/5)
-            </p>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-slate-400" />
+              <p className="text-sm font-medium text-slate-300">
+                Players ({gameState.players.length}/5)
+              </p>
+            </div>
+            {isHost && gameState.players.length < 5 && (
+              <button
+                onClick={handleAddBot}
+                disabled={addingBot}
+                className="flex items-center gap-1 text-xs text-slate-400 hover:text-indigo-400 transition-colors disabled:opacity-50"
+                title="Add a bot player"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add Bot
+              </button>
+            )}
           </div>
           <ul className="space-y-2">
-            {gameState.players.map(player => (
-              <li key={player.id} className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-400" />
-                <span className="text-sm text-slate-200 flex-1">{player.name}</span>
-                {player.id === gameState.hostId && (
-                  <Badge variant="secondary" className="text-xs">Host</Badge>
-                )}
-                {player.id === myPlayerId && (
-                  <Badge variant="default" className="text-xs">You</Badge>
-                )}
-              </li>
-            ))}
+            {gameState.players.map(player => {
+              const isBot = gameState.botIds.includes(player.id)
+              return (
+                <li key={player.id} className="flex items-center gap-2">
+                  {isBot
+                    ? <Bot className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+                    : <div className="h-2 w-2 rounded-full bg-green-400 shrink-0" />
+                  }
+                  <span className="text-sm text-slate-200 flex-1">{player.name}</span>
+                  {player.id === gameState.hostId && (
+                    <Badge variant="secondary" className="text-xs">Host</Badge>
+                  )}
+                  {player.id === myPlayerId && (
+                    <Badge variant="default" className="text-xs">You</Badge>
+                  )}
+                  {isBot && isHost && (
+                    <button
+                      onClick={() => onRemoveBot(player.id)}
+                      className="text-slate-600 hover:text-red-400 transition-colors"
+                      title="Remove bot"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </li>
+              )
+            })}
             {gameState.players.length < 2 && (
               <li className="text-xs text-slate-600 italic">Need at least 2 players to start…</li>
             )}
