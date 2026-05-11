@@ -1,4 +1,4 @@
-import { cn, COLOR_DISPLAY } from '@/lib/utils'
+import { cn, COLOR_DISPLAY, RAINBOW_GRADIENT } from '@/lib/utils'
 import type { CardInHand, Color, Value } from '@/lib/types'
 
 interface Props {
@@ -21,6 +21,7 @@ const sizes = {
 export default function CardComponent({ card, mode, selected, highlighted, isNew, hideHints, onClick, size = 'md' }: Props) {
   if (mode === 'front') {
     const c = COLOR_DISPLAY[card.color]
+    const isMulti = card.color === 'multicolor'
     return (
       <div
         onClick={onClick}
@@ -28,16 +29,19 @@ export default function CardComponent({ card, mode, selected, highlighted, isNew
         className={cn(
           'relative rounded-lg border-2 flex flex-col items-center justify-center cursor-default select-none transition-all duration-150',
           sizes[size],
-          c.bg, c.border, c.text,
+          !isMulti && c.bg,
+          c.border,
+          'text-white',
           onClick && 'cursor-pointer hover:scale-105',
           highlighted && 'card-clue-highlight scale-105',
           selected && 'ring-4 ring-indigo-400 ring-offset-1 ring-offset-slate-900 scale-105',
           isNew && 'new-card-pulse',
         )}
+        style={isMulti ? { background: RAINBOW_GRADIENT } : undefined}
         title={`${c.label} ${card.value}`}
       >
-        <span className="font-bold leading-none">{card.value}</span>
-        <span className="text-[0.55em] leading-none mt-1 opacity-80">{c.label}</span>
+        <span className="font-bold leading-none drop-shadow">{card.value}</span>
+        <span className="text-[0.55em] leading-none mt-1 opacity-80 drop-shadow">{c.label}</span>
       </div>
     )
   }
@@ -79,7 +83,7 @@ export default function CardComponent({ card, mode, selected, highlighted, isNew
                 <span
                   key={`ch-${i}`}
                   className={cn('w-3 h-3 rounded-full border border-white/20', c !== 'multicolor' && COLOR_DISPLAY[c].dot)}
-                  style={c === 'multicolor' ? { background: 'conic-gradient(#ef4444, #eab308, #22c55e, #3b82f6, #f1f5f9, #ef4444)' } : undefined}
+                  style={c === 'multicolor' ? { background: RAINBOW_GRADIENT } : undefined}
                   title={`Is ${COLOR_DISPLAY[c].label}`}
                 />
               ))}

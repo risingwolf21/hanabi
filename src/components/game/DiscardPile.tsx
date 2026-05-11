@@ -1,5 +1,5 @@
 import { AlertTriangle } from 'lucide-react'
-import { cn, COLOR_DISPLAY, getCardDistribution } from '@/lib/utils'
+import { cn, COLOR_DISPLAY, RAINBOW_GRADIENT, getCardDistribution } from '@/lib/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { Card, Color } from '@/lib/types'
 import { COLORS_BASE, COLORS_ALL } from '@/lib/types'
@@ -61,7 +61,10 @@ export default function DiscardPile({ discardPile, config }: Props) {
 
           return (
             <div key={color} className="flex items-center gap-1.5 px-1">
-              <div className={cn('w-2.5 h-2.5 rounded-full shrink-0', c.dot)} />
+              <div
+                className={cn('w-2.5 h-2.5 rounded-full shrink-0', color !== 'multicolor' && c.dot)}
+                style={color === 'multicolor' ? { background: RAINBOW_GRADIENT } : undefined}
+              />
               <span className="text-[10px] text-slate-500 w-12 shrink-0">{c.label}</span>
               <div className="flex gap-1 flex-wrap">
                 {cardGroups.map(({ value, count, isLast }) => (
