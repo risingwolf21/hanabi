@@ -188,7 +188,7 @@ export default function GameBoard({
                 onCardSelect={id => setSelectedCardId(prev => prev === id ? null : id)}
                 interactionMode={isMyTurn ? 'select' : 'view'}
                 highlightedCardIds={flashingCardIds}
-                hideHints={gameState.config.hideOwnHints}
+                hideHints={gameState.config.hideOwnHints && !isMyTurn}
                 size="md"
               />
             </div>
