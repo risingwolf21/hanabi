@@ -34,7 +34,7 @@ export default function LobbyPage() {
   const [mode, setMode] = useState<Mode>('home')
   const [nameInput, setNameInput] = useState(displayName)
   const [joinCode, setJoinCode] = useState('')
-  const [config, setConfig] = useState<GameConfig>({ multicolorVariant: 0, perfectionist: false })
+  const [config, setConfig] = useState<GameConfig>({ multicolorVariant: 0, perfectionist: false, hideOwnHints: false })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -158,6 +158,26 @@ export default function LobbyPage() {
                     </span>
                     <span className="text-xs text-slate-500">
                       Game never ends after the last tile round. Continue until loss (3 fuses or indispensable tile discarded) or perfect win. No score scale — must be flawless.
+                    </span>
+                  </span>
+                </label>
+              </div>
+
+              {/* Hide own hints */}
+              <div>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={config.hideOwnHints}
+                    onChange={e => setConfig(c => ({ ...c, hideOwnHints: e.target.checked }))}
+                    className="mt-0.5 accent-indigo-500"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-slate-200">
+                      Hide Own Hints
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      Players cannot see the hint badges on their own cards. Play from memory only.
                     </span>
                   </span>
                 </label>
