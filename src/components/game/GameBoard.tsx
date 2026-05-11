@@ -10,6 +10,7 @@ import ActionPanel from './ActionPanel'
 import ClueModal from './ClueModal'
 import GameOverScreen from './GameOverScreen'
 import CardActionOverlay from './CardActionOverlay'
+import CardComponent from './CardComponent'
 import { Badge } from '@/components/ui/badge'
 
 interface Props {
@@ -89,8 +90,10 @@ export default function GameBoard({
     if (!pendingClue) return
     const ids = pendingClue.cardIds
     setPendingClue(null)
-    setFlashingCardIds(ids)
-    setTimeout(() => setFlashingCardIds([]), 1500)
+    if (!gameState.config.hideOwnHints) {
+      setFlashingCardIds(ids)
+      setTimeout(() => setFlashingCardIds([]), 1500)
+    }
   }
 
   const wrap = useCallback(
@@ -220,7 +223,7 @@ export default function GameBoard({
                 onCardSelect={id => setSelectedCardId(prev => prev === id ? null : id)}
                 interactionMode={isMyTurn ? 'select' : 'view'}
                 highlightedCardIds={flashingCardIds}
-                hideHints={gameState.config.hideOwnHints && !isMyTurn}
+                hideHints={gameState.config.hideOwnHints}
                 onReorder={onReorderHand}
                 size="md"
               />
@@ -294,8 +297,19 @@ export default function GameBoard({
               </div>
             )}
 
+            <div className="flex gap-1.5 flex-wrap justify-center py-1">
+              {myHand.map(card => (
+                <CardComponent
+                  key={card.id}
+                  card={card}
+                  mode="back"
+                  highlighted={pendingClue.cardIds.includes(card.id)}
+                  size="sm"
+                />
+              ))}
+            </div>
             <p className="text-xs text-slate-500">
-              Tap reveal to see which of your cards this applies to
+              Tap reveal to confirm
             </p>
             <button
               onClick={handleRevealClue}
