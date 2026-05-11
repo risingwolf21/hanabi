@@ -3,7 +3,7 @@ import type { GameState, Color, Value, ClueType } from '@/lib/types'
 import { canGiveClue, canDiscard, chooseBotAction } from '@/lib/gameEngine'
 import {
   subscribeToGame, performAction, startGame as startGameFn,
-  addBot as addBotFn, removeBot as removeBotFn,
+  addBot as addBotFn, removeBot as removeBotFn, leaveGame as leaveGameFn,
 } from '@/lib/database'
 import { useAuth } from './useAuth'
 
@@ -22,6 +22,7 @@ interface UseGameReturn {
   startGame: () => Promise<void>
   addBot: () => Promise<void>
   removeBot: (botId: string) => Promise<void>
+  leaveGame: () => Promise<void>
 }
 
 export function useGame(gameId: string): UseGameReturn {
@@ -144,6 +145,11 @@ export function useGame(gameId: string): UseGameReturn {
     [gameId, myPlayerId, wrap],
   )
 
+  const leaveGame = useCallback(
+    () => wrap(() => leaveGameFn(gameId, myPlayerId!)),
+    [gameId, myPlayerId, wrap],
+  )
+
   return {
     gameState,
     loading,
@@ -159,5 +165,6 @@ export function useGame(gameId: string): UseGameReturn {
     startGame,
     addBot,
     removeBot,
+    leaveGame,
   }
 }

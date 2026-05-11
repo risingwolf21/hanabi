@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { Sparkles, Info } from 'lucide-react'
 import { useGame } from '@/hooks/useGame'
 import { useAuth } from '@/hooks/useAuth'
@@ -10,10 +10,11 @@ import GameBoard from '@/components/game/GameBoard'
 
 export default function GamePage() {
   const { gameId } = useParams<{ gameId: string }>()
+  const navigate = useNavigate()
   const { user, displayName, setDisplayName, signIn, authError } = useAuth()
   const {
     gameState, loading, error, clearError,
-    myPlayerId, giveClue, discardCard, playCard, startGame, addBot, removeBot,
+    myPlayerId, giveClue, discardCard, playCard, startGame, addBot, removeBot, leaveGame,
   } = useGame(gameId!)
 
   const [nameInput, setNameInput] = useState(displayName)
@@ -93,6 +94,11 @@ export default function GamePage() {
     )
   }
 
+  async function handleLeave() {
+    await leaveGame()
+    navigate('/')
+  }
+
   if (gameState.status === 'lobby') {
     return (
       <GameRoom
@@ -101,6 +107,7 @@ export default function GamePage() {
         onStart={startGame}
         onAddBot={addBot}
         onRemoveBot={removeBot}
+        onLeave={handleLeave}
         error={error}
       />
     )
@@ -113,6 +120,7 @@ export default function GamePage() {
       onGiveClue={giveClue}
       onDiscard={discardCard}
       onPlay={playCard}
+      onLeave={handleLeave}
       error={error}
       clearError={clearError}
     />

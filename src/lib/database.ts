@@ -80,6 +80,7 @@ function normalise(raw: unknown): GameState {
     lastRoundTurnsLeft: (d.lastRoundTurnsLeft as number) ?? null,
     score: (d.score as number) ?? null,
     winner: (d.winner as boolean) ?? null,
+    abandonedBy: (d.abandonedBy as string) ?? null,
     lastAction: normaliseAction(d.lastAction),
   } as GameState
 }
@@ -121,6 +122,7 @@ export async function createGame(
     lastRoundTurnsLeft: null,
     score: null,
     winner: null,
+    abandonedBy: null,
     lastAction: null,
   }
 
@@ -252,6 +254,38 @@ export async function performAction(
   }, { applyLocally: false })
 
   if (errorMsg) throw new Error(errorMsg)
+}
+
+export async function leaveGame(gameId: string, playerId: string): Promise<void> {
+  // Host leaving the lobby dissolves the room for everyone
+  const snap = await get(gameRef(gameId))
+  if (!snap.exists()) return
+  const state = normalise(snap.val())
+
+  if (state.status === 'lobby') {
+    if (state.hostId === playerId) {
+      // Delete the room — all subscribers see null and get redirected home
+      await set(gameRef(gameId), null)
+    } else {
+      await runTransaction(gameRef(gameId), (current: unknown) => {
+        if (!current) return
+        const s = normalise(current)
+        return { ...s, players: s.players.filter(p => p.id !== playerId) }
+      }, { applyLocally: false })
+    }
+    return
+  }
+
+  if (state.status === 'playing') {
+    const player = state.players.find(p => p.id === playerId)
+    const name = player?.name ?? 'A player'
+    await runTransaction(gameRef(gameId), (current: unknown) => {
+      if (!current) return
+      const s = normalise(current)
+      if (s.status !== 'playing') return s
+      return { ...s, abandonedBy: name }
+    }, { applyLocally: false })
+  }
 }
 
 export function subscribeToGame(

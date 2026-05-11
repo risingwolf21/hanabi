@@ -61,6 +61,7 @@ export interface GameState {
   lastRoundTurnsLeft: number | null
   score: number | null
   winner: boolean | null
+  abandonedBy: string | null
   lastAction: Action | null
 }
 

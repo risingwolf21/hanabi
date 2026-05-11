@@ -10,6 +10,7 @@ interface Props {
   onStart: () => Promise<void>
   onAddBot: () => Promise<void>
   onRemoveBot: (botId: string) => Promise<void>
+  onLeave: () => Promise<void>
   error: string | null
 }
 
@@ -20,10 +21,16 @@ const VARIANT_LABELS: Record<number, string> = {
   3: 'Variant 3 – 6th suit (wild)',
 }
 
-export default function GameRoom({ gameState, myPlayerId, onStart, onAddBot, onRemoveBot, error }: Props) {
+export default function GameRoom({ gameState, myPlayerId, onStart, onAddBot, onRemoveBot, onLeave, error }: Props) {
   const [copied, setCopied] = useState(false)
   const [starting, setStarting] = useState(false)
   const [addingBot, setAddingBot] = useState(false)
+  const [leaving, setLeaving] = useState(false)
+
+  async function handleLeave() {
+    setLeaving(true)
+    try { await onLeave() } finally { setLeaving(false) }
+  }
 
   const isHost = myPlayerId === gameState.hostId
   const canStart = gameState.players.length >= 2
@@ -161,6 +168,16 @@ export default function GameRoom({ gameState, myPlayerId, onStart, onAddBot, onR
         ) : (
           <p className="text-center text-sm text-slate-500">Waiting for the host to start the game…</p>
         )}
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full text-slate-500 hover:text-red-400"
+          disabled={leaving}
+          onClick={handleLeave}
+        >
+          {leaving ? 'Leaving…' : isHost ? 'Close Room' : 'Leave Room'}
+        </Button>
       </div>
     </div>
   )
