@@ -90,7 +90,7 @@ export default function CardComponent({ card, mode, selected, highlighted, isNew
               {card.valueHints.map((v, i) => (
                 <span
                   key={`vh-${i}`}
-                  className="text-[9px] font-bold bg-orange-400 text-orange-950 rounded px-0.5 leading-tight"
+                  className="text-[9px] font-bold bg-zinc-500 text-white rounded px-0.5 leading-tight"
                   title={`Is ${v}`}
                 >
                   {v}
