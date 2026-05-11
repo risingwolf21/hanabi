@@ -16,6 +16,8 @@ export function generateGameId(): string {
   return id
 }
 
+export const RAINBOW_GRADIENT = 'linear-gradient(135deg, #ef4444 0%, #eab308 25%, #22c55e 50%, #3b82f6 75%, #f1f5f9 100%)'
+
 export const COLOR_DISPLAY: Record<Color, { label: string; bg: string; border: string; text: string; dot: string }> = {
   red: {
     label: 'Red',
