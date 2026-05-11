@@ -18,6 +18,7 @@ interface Props {
   onDiscard: (cardId: string) => Promise<void>
   onPlay: (cardId: string) => Promise<void>
   onLeave: () => Promise<void>
+  onReorderHand: (order: string[]) => Promise<void>
   error: string | null
   clearError: () => void
 }
@@ -29,6 +30,7 @@ export default function GameBoard({
   onDiscard,
   onPlay,
   onLeave,
+  onReorderHand,
   error,
   clearError,
 }: Props) {
@@ -163,6 +165,7 @@ export default function GameBoard({
                     key={player.id}
                     player={player}
                     hand={gameState.hands[player.id] ?? []}
+                    serverOrder={gameState.handOrder[player.id]}
                     isOwnHand={false}
                     isCurrentPlayer={
                       gameState.players[gameState.currentPlayerIndex]?.id === player.id
@@ -189,6 +192,7 @@ export default function GameBoard({
                 interactionMode={isMyTurn ? 'select' : 'view'}
                 highlightedCardIds={flashingCardIds}
                 hideHints={gameState.config.hideOwnHints && !isMyTurn}
+                onReorder={onReorderHand}
                 size="md"
               />
             </div>

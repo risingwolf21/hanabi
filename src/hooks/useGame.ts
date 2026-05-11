@@ -4,6 +4,7 @@ import { canGiveClue, canDiscard, chooseBotAction } from '@/lib/gameEngine'
 import {
   subscribeToGame, performAction, startGame as startGameFn,
   addBot as addBotFn, removeBot as removeBotFn, leaveGame as leaveGameFn,
+  updateHandOrder as updateHandOrderFn,
 } from '@/lib/database'
 import { useAuth } from './useAuth'
 
@@ -23,6 +24,7 @@ interface UseGameReturn {
   addBot: () => Promise<void>
   removeBot: (botId: string) => Promise<void>
   leaveGame: () => Promise<void>
+  updateHandOrder: (order: string[]) => Promise<void>
 }
 
 export function useGame(gameId: string): UseGameReturn {
@@ -150,6 +152,11 @@ export function useGame(gameId: string): UseGameReturn {
     [gameId, myPlayerId, wrap],
   )
 
+  const updateHandOrder = useCallback(
+    (order: string[]) => updateHandOrderFn(gameId, myPlayerId!, order),
+    [gameId, myPlayerId],
+  )
+
   return {
     gameState,
     loading,
@@ -166,5 +173,6 @@ export function useGame(gameId: string): UseGameReturn {
     addBot,
     removeBot,
     leaveGame,
+    updateHandOrder,
   }
 }

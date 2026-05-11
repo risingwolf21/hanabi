@@ -65,6 +65,13 @@ function normalise(raw: unknown): GameState {
     }
   }
 
+  const handOrder: Record<string, string[]> = {}
+  if (d.handOrder && typeof d.handOrder === 'object') {
+    for (const [pid, order] of Object.entries(d.handOrder as Record<string, unknown>)) {
+      handOrder[pid] = toArr<string>(order)
+    }
+  }
+
   const simpleCard = (c: Record<string, unknown>): Card =>
     ({ id: c.id, color: c.color, value: c.value }) as Card
 
@@ -75,6 +82,7 @@ function normalise(raw: unknown): GameState {
     deck: toArr<Record<string, unknown>>(d.deck).map(simpleCard),
     discardPile: toArr<Record<string, unknown>>(d.discardPile).map(simpleCard),
     hands,
+    handOrder,
     // RTDB strips null fields; restore them with ?? null
     lastRoundStarterIndex: (d.lastRoundStarterIndex as number) ?? null,
     lastRoundTurnsLeft: (d.lastRoundTurnsLeft as number) ?? null,
@@ -113,6 +121,7 @@ export async function createGame(
     currentPlayerIndex: 0,
     deck: [],
     hands: {},
+    handOrder: {},
     fireworks: initialFireworks(config),
     discardPile: [],
     clocks: 8,
@@ -254,6 +263,10 @@ export async function performAction(
   }, { applyLocally: false })
 
   if (errorMsg) throw new Error(errorMsg)
+}
+
+export async function updateHandOrder(gameId: string, playerId: string, order: string[]): Promise<void> {
+  await set(ref(db, `games/${gameId}/handOrder/${playerId}`), order)
 }
 
 export async function leaveGame(gameId: string, playerId: string): Promise<void> {

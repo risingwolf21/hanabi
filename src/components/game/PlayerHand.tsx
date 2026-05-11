@@ -16,10 +16,12 @@ import { Badge } from '@/components/ui/badge'
 interface Props {
   player: Player
   hand: CardInHand[]
+  serverOrder?: string[]
   isOwnHand: boolean
   isCurrentPlayer: boolean
   selectedCardId?: string | null
   onCardSelect?: (cardId: string) => void
+  onReorder?: (order: string[]) => void
   interactionMode?: 'select' | 'view'
   size?: 'sm' | 'md' | 'lg'
   highlightedCardIds?: string[]
@@ -66,10 +68,12 @@ function SortableCard({
 export default function PlayerHand({
   player,
   hand,
+  serverOrder,
   isOwnHand,
   isCurrentPlayer,
   selectedCardId,
   onCardSelect,
+  onReorder,
   interactionMode = 'view',
   size = 'md',
   highlightedCardIds = [],
@@ -115,15 +119,29 @@ export default function PlayerHand({
       setCardOrder(prev => {
         const oldIndex = prev.indexOf(active.id as string)
         const newIndex = prev.indexOf(over.id as string)
-        return arrayMove(prev, oldIndex, newIndex)
+        const next = arrayMove(prev, oldIndex, newIndex)
+        onReorder?.(next)
+        return next
       })
     }
   }
 
-  // Build display list respecting drag order
-  const orderedHand = isOwnHand
-    ? cardOrder.map(id => hand.find(c => c.id === id)).filter(Boolean) as CardInHand[]
-    : hand
+  // Build display list:
+  // - own hand: local drag order
+  // - other players: server-persisted order from handOrder
+  const orderedHand = (() => {
+    if (isOwnHand) {
+      return cardOrder.map(id => hand.find(c => c.id === id)).filter(Boolean) as CardInHand[]
+    }
+    if (serverOrder && serverOrder.length > 0) {
+      const byId = Object.fromEntries(hand.map(c => [c.id, c]))
+      return [
+        ...serverOrder.map(id => byId[id]).filter(Boolean),
+        ...hand.filter(c => !serverOrder.includes(c.id)),
+      ]
+    }
+    return hand
+  })()
 
   if (!isOwnHand) {
     return (
