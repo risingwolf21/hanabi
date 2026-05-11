@@ -67,6 +67,21 @@ body {
   animation: hint-flash 1.2s ease-out;
 }
 
+/* Dotted gray outline for cards being targeted by a clue */
+.card-clue-highlight {
+  outline: 2.5px dashed #94a3b8;
+  outline-offset: 3px;
+}
+
+/* Pulse for newly drawn card */
+@keyframes new-card-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+  40%       { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.45); }
+}
+.new-card-pulse {
+  animation: new-card-pulse 1.6s ease-in-out 2;
+}
+
 @keyframes card-overlay-enter {
   from { transform: scale(0.2); opacity: 0; }
   to   { transform: scale(1);   opacity: 1; }

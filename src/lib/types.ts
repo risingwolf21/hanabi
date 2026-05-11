@@ -14,6 +14,7 @@ export function getHandSize(playerCount: number): number {
 export interface GameConfig {
   multicolorVariant: 0 | 1 | 2 | 3
   perfectionist: boolean
+  hideOwnHints: boolean
 }
 
 export interface Card {

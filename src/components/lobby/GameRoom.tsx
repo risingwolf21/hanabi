@@ -80,6 +80,12 @@ export default function GameRoom({ gameState, myPlayerId, onStart, onAddBot, onR
               Perfectionist Mode (Variant 4)
             </p>
           )}
+          {gameState.config.hideOwnHints && (
+            <p className="text-sm text-slate-300">
+              <span className="text-slate-500">+ </span>
+              Hide Own Hints
+            </p>
+          )}
         </div>
 
         {/* Players */}

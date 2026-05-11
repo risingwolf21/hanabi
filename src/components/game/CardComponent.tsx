@@ -6,6 +6,8 @@ interface Props {
   mode: 'front' | 'back'
   selected?: boolean
   highlighted?: boolean
+  isNew?: boolean
+  hideHints?: boolean
   onClick?: () => void
   size?: 'sm' | 'md' | 'lg'
 }
@@ -16,7 +18,7 @@ const sizes = {
   lg: 'w-16 h-24 text-2xl',
 }
 
-export default function CardComponent({ card, mode, selected, highlighted, onClick, size = 'md' }: Props) {
+export default function CardComponent({ card, mode, selected, highlighted, isNew, hideHints, onClick, size = 'md' }: Props) {
   if (mode === 'front') {
     const c = COLOR_DISPLAY[card.color]
     return (
@@ -28,8 +30,9 @@ export default function CardComponent({ card, mode, selected, highlighted, onCli
           sizes[size],
           c.bg, c.border, c.text,
           onClick && 'cursor-pointer hover:scale-105',
-          highlighted && 'ring-4 ring-yellow-400 ring-offset-1 ring-offset-slate-900 scale-105',
+          highlighted && 'card-clue-highlight scale-105',
           selected && 'ring-4 ring-indigo-400 ring-offset-1 ring-offset-slate-900 scale-105',
+          isNew && 'new-card-pulse',
         )}
         title={`${c.label} ${card.value}`}
       >
@@ -40,11 +43,12 @@ export default function CardComponent({ card, mode, selected, highlighted, onCli
   }
 
   // Back mode — show card back with hint badges
-  const hasHints =
+  const hasHints = !hideHints && (
     card.colorHints.length > 0 ||
     card.valueHints.length > 0 ||
     card.colorNotHints.length > 0 ||
     card.valueNotHints.length > 0
+  )
 
   return (
     <div
@@ -54,7 +58,9 @@ export default function CardComponent({ card, mode, selected, highlighted, onCli
         'relative rounded-lg border-2 border-slate-600 bg-slate-800 flex flex-col items-center justify-between py-1 px-0.5 cursor-default select-none transition-all duration-150',
         sizes[size],
         onClick && 'cursor-pointer hover:scale-105 hover:border-slate-400',
+        highlighted && 'card-clue-highlight scale-105',
         selected && 'ring-4 ring-indigo-400 ring-offset-1 ring-offset-slate-900 scale-105 border-indigo-500',
+        isNew && 'new-card-pulse',
       )}
     >
       {/* Decorative back pattern */}
