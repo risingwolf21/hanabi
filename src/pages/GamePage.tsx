@@ -14,7 +14,7 @@ export default function GamePage() {
   const { user, displayName, setDisplayName, signIn, authError } = useAuth()
   const {
     gameState, loading, error, clearError,
-    myPlayerId, giveClue, discardCard, playCard, startGame, addBot, removeBot, leaveGame,
+    myPlayerId, giveClue, discardCard, playCard, startGame, addBot, removeBot, leaveGame, updateHandOrder,
   } = useGame(gameId!)
 
   const [nameInput, setNameInput] = useState(displayName)
@@ -121,6 +121,7 @@ export default function GamePage() {
       onDiscard={discardCard}
       onPlay={playCard}
       onLeave={handleLeave}
+      onReorderHand={updateHandOrder}
       error={error}
       clearError={clearError}
     />

@@ -90,7 +90,7 @@ export default function CardComponent({ card, mode, selected, highlighted, isNew
               {card.valueHints.map((v, i) => (
                 <span
                   key={`vh-${i}`}
-                  className="text-[9px] font-bold bg-yellow-500 text-black rounded px-0.5 leading-tight"
+                  className="text-[9px] font-bold bg-slate-200 text-slate-800 rounded px-0.5 leading-tight"
                   title={`Is ${v}`}
                 >
                   {v}
@@ -129,8 +129,18 @@ export default function CardComponent({ card, mode, selected, highlighted, isNew
         </div>
       )}
 
-      {/* Card index indicator at bottom */}
-      <div className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0" />
+      {/* Bottom indicator — turns indigo when hints exist but are hidden */}
+      {(() => {
+        const cardHasHints =
+          card.colorHints.length > 0 || card.valueHints.length > 0 ||
+          card.colorNotHints.length > 0 || card.valueNotHints.length > 0
+        return (
+          <div className={cn(
+            'w-1.5 h-1.5 rounded-full shrink-0',
+            hideHints && cardHasHints ? 'bg-indigo-400' : 'bg-slate-600',
+          )} />
+        )
+      })()}
     </div>
   )
 }

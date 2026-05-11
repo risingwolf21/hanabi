@@ -52,6 +52,7 @@ export interface GameState {
   currentPlayerIndex: number
   deck: Card[]
   hands: Record<string, CardInHand[]>
+  handOrder: Record<string, string[]>
   fireworks: Record<Color, number>
   discardPile: Card[]
   clocks: number
