@@ -17,6 +17,7 @@ interface Props {
   onGiveClue: (targetId: string, clueType: ClueType, clueValue: Color | Value) => Promise<void>
   onDiscard: (cardId: string) => Promise<void>
   onPlay: (cardId: string) => Promise<void>
+  onLeave: () => Promise<void>
   error: string | null
   clearError: () => void
 }
@@ -27,6 +28,7 @@ export default function GameBoard({
   onGiveClue,
   onDiscard,
   onPlay,
+  onLeave,
   error,
   clearError,
 }: Props) {
@@ -35,6 +37,14 @@ export default function GameBoard({
   const [actionPending, setActionPending] = useState(false)
   const [lastActionId, setLastActionId] = useState<string | null>(null)
   const [flashingCardIds, setFlashingCardIds] = useState<string[]>([])
+  const [leaving, setLeaving] = useState(false)
+
+  const isAbandoned = gameState.abandonedBy !== null && gameState.status !== 'ended'
+
+  async function handleLeave() {
+    setLeaving(true)
+    try { await onLeave() } finally { setLeaving(false) }
+  }
 
   const isMyTurn =
     gameState.status === 'playing' &&
@@ -96,8 +106,17 @@ export default function GameBoard({
             </Badge>
           )}
         </div>
-        <div className="text-xs text-slate-500">
-          {gameState.players[gameState.currentPlayerIndex]?.name}'s turn
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-slate-500">
+            {gameState.players[gameState.currentPlayerIndex]?.name}'s turn
+          </span>
+          <button
+            onClick={handleLeave}
+            disabled={leaving}
+            className="text-xs text-slate-600 hover:text-red-400 transition-colors disabled:opacity-50"
+          >
+            {leaving ? 'Leaving…' : 'Leave'}
+          </button>
         </div>
       </div>
 
@@ -176,7 +195,7 @@ export default function GameBoard({
           )}
 
           {/* Action panel */}
-          {isMyTurn && (
+          {isMyTurn && !isAbandoned && (
             <div>
               <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-1 px-1">Your Action</p>
               <ActionPanel
@@ -218,6 +237,23 @@ export default function GameBoard({
           fireworks={gameState.fireworks}
           config={gameState.config}
         />
+      )}
+
+      {/* Abandoned overlay */}
+      {isAbandoned && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-8 max-w-sm w-full mx-4 text-center space-y-4">
+            <div className="text-4xl">👋</div>
+            <h2 className="text-xl font-bold text-white">{gameState.abandonedBy} left the game</h2>
+            <p className="text-sm text-slate-400">The game cannot continue. Thanks for playing!</p>
+            <button
+              onClick={handleLeave}
+              className="w-full mt-2 rounded-md bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 text-sm font-medium text-white transition-colors"
+            >
+              Return to Home
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Card action animation overlay */}
