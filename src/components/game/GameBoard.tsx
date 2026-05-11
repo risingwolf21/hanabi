@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { GameState, ClueType, Color, Value } from '@/lib/types'
 import { canGiveClue, canDiscard } from '@/lib/gameEngine'
+import { cn, COLOR_DISPLAY } from '@/lib/utils'
 import TokenArea from './TokenArea'
 import Fireworks from './Fireworks'
 import DiscardPile from './DiscardPile'
@@ -40,6 +41,12 @@ export default function GameBoard({
   const [lastActionId, setLastActionId] = useState<string | null>(null)
   const [flashingCardIds, setFlashingCardIds] = useState<string[]>([])
   const [leaving, setLeaving] = useState(false)
+  const [pendingClue, setPendingClue] = useState<{
+    actorName: string
+    clueType: ClueType
+    clueValue: Color | Value
+    cardIds: string[]
+  } | null>(null)
 
   const isAbandoned = gameState.abandonedBy !== null && gameState.status !== 'ended'
 
@@ -52,17 +59,39 @@ export default function GameBoard({
     gameState.status === 'playing' &&
     gameState.players[gameState.currentPlayerIndex]?.id === myPlayerId
 
-  // Flash cards when a clue is given
+  // Handle incoming clue actions
   useEffect(() => {
     const action = gameState.lastAction
     if (!action || action.type !== 'clue') return
     const key = `${action.actorId}-${action.clueValue}-${action.cardIds.join('')}`
     if (key === lastActionId) return
     setLastActionId(key)
-    setFlashingCardIds(action.cardIds)
-    const timer = setTimeout(() => setFlashingCardIds([]), 1500)
-    return () => clearTimeout(timer)
+
+    if (action.targetPlayerId === myPlayerId) {
+      // This clue is for me — require confirmation before revealing which cards
+      const actor = gameState.players.find(p => p.id === action.actorId)
+      setPendingClue({
+        actorName: actor?.name ?? 'A player',
+        clueType: action.clueType,
+        clueValue: action.clueValue,
+        cardIds: action.cardIds,
+      })
+    } else {
+      // Clue for someone else — flash their cards immediately
+      setFlashingCardIds(action.cardIds)
+      const timer = setTimeout(() => setFlashingCardIds([]), 1500)
+      return () => clearTimeout(timer)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState.lastAction, lastActionId])
+
+  function handleRevealClue() {
+    if (!pendingClue) return
+    const ids = pendingClue.cardIds
+    setPendingClue(null)
+    setFlashingCardIds(ids)
+    setTimeout(() => setFlashingCardIds([]), 1500)
+  }
 
   const wrap = useCallback(
     async (fn: () => Promise<void>) => {
@@ -241,6 +270,41 @@ export default function GameBoard({
           fireworks={gameState.fireworks}
           config={gameState.config}
         />
+      )}
+
+      {/* Clue reveal confirmation */}
+      {pendingClue && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-xs w-full mx-4 text-center space-y-4">
+            <p className="text-sm text-slate-400">You received a hint from</p>
+            <p className="text-xl font-bold text-white">{pendingClue.actorName}</p>
+
+            {pendingClue.clueType === 'color' ? (
+              <div className={cn(
+                'inline-flex items-center gap-2 px-5 py-2 rounded-full text-base font-bold border-2',
+                COLOR_DISPLAY[pendingClue.clueValue as Color].bg,
+                COLOR_DISPLAY[pendingClue.clueValue as Color].border,
+                COLOR_DISPLAY[pendingClue.clueValue as Color].text,
+              )}>
+                {COLOR_DISPLAY[pendingClue.clueValue as Color].label}
+              </div>
+            ) : (
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-200 text-slate-800 text-2xl font-bold">
+                {pendingClue.clueValue}
+              </div>
+            )}
+
+            <p className="text-xs text-slate-500">
+              Tap reveal to see which of your cards this applies to
+            </p>
+            <button
+              onClick={handleRevealClue}
+              className="w-full rounded-md bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 text-sm font-medium text-white transition-colors"
+            >
+              Reveal
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Abandoned overlay */}
