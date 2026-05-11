@@ -78,7 +78,8 @@ export default function CardComponent({ card, mode, selected, highlighted, isNew
               {card.colorHints.map((c, i) => (
                 <span
                   key={`ch-${i}`}
-                  className={cn('w-3 h-3 rounded-full border border-white/20', COLOR_DISPLAY[c].dot)}
+                  className={cn('w-3 h-3 rounded-full border border-white/20', c !== 'multicolor' && COLOR_DISPLAY[c].dot)}
+                  style={c === 'multicolor' ? { background: 'conic-gradient(#ef4444, #eab308, #22c55e, #3b82f6, #f1f5f9, #ef4444)' } : undefined}
                   title={`Is ${COLOR_DISPLAY[c].label}`}
                 />
               ))}
