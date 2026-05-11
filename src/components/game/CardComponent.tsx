@@ -31,7 +31,7 @@ export default function CardComponent({ card, mode, selected, highlighted, isNew
           sizes[size],
           !isMulti && c.bg,
           c.border,
-          'text-white',
+          isMulti ? 'text-white' : c.text,
           onClick && 'cursor-pointer hover:scale-105',
           highlighted && 'card-clue-highlight scale-105',
           selected && 'ring-4 ring-indigo-400 ring-offset-1 ring-offset-slate-900 scale-105',

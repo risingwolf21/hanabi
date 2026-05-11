@@ -113,3 +113,11 @@ body {
 .label-overlay-enter {
   animation: label-overlay-enter 0.3s ease-out 0.2s both;
 }
+
+@keyframes firework-spark {
+  0%   { transform: rotate(var(--angle)) translateY(0)     scale(1); opacity: 1; }
+  100% { transform: rotate(var(--angle)) translateY(-70px) scale(0); opacity: 0; }
+}
+.firework-spark {
+  animation: firework-spark 0.9s ease-out forwards;
+}
